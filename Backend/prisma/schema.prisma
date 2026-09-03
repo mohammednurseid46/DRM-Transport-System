@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// prisma/schema.prisma
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Role {
+  PASSENGER
+  DRIVER
+  ADMIN
+}
+
+model User {
+  user_id        String    @id @default(uuid())
+  full_name      String
+  email          String    @unique
+  phone_number   String    @unique
+  password_hash  String
+  role           Role      @default(PASSENGER)
+  profile_photo  String?
+  is_active      Boolean   @default(true)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  driver         Driver?
+  ratings_given  Rating[]  @relation("RatingsGiven")
+  ratings_recv   Rating[]  @relation("RatingsReceived")
+  notifications  Notification[]
+  passengers     RidePassenger[]
+  complaints     Complaint[] @relation("SubmittedBy")
+}
+
+model Vehicle {
+  vehicle_id     String    @id @default(uuid())
+  plate_number   String    @unique
+  model          String
+  manufacturer   String
+  year           Int
+  color          String
+  vehicle_tier   String    // e.g., standard, premium
+  seat_capacity  Int
+  is_electric    Boolean   @default(false)
+  is_active      Boolean   @default(true)
+  created_at     DateTime  @default(now())
+
+  drivers        Driver[]
+}
+
+model Driver {
+  driver_id        String    @id @default(uuid())
+  user_id          String    @unique
+  vehicle_id       String
+  licence_number   String    @unique
+  licence_expiry   DateTime
+  is_verified      Boolean   @default(false)
+  is_available     Boolean   @default(false)
+  current_latitude Float?
+  current_longitude Float?
+  rating           Float     @default(0.0)
+  total_rides      Int       @default(0)
+
+  user             User      @relation(fields: [user_id], references: [user_id])
+  vehicle          Vehicle   @relation(fields: [vehicle_id], references: [vehicle_id])
+  documents        DriverDocument[]
+  rides            Ride[]
+}
+
+model DriverDocument {
+  document_id    String    @id @default(uuid())
+  driver_id      String
+  document_type  String    // e.g., ID, LICENCE, INSURANCE
+  file_url       String
+  verified       Boolean   @default(false)
+
+  driver         Driver    @relation(fields: [driver_id], references: [driver_id])
+}
+
+enum RideType {
+  SHARED
+  PRIVATE
+}
+
+enum FareType {
+  FIXED
+  NEGOTIATED
+}
+
+enum RideStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Ride {
+  ride_id           String       @id @default(uuid())
+  driver_id         String?
+  pickup_lat        Float
+  pickup_lng        Float
+  pickup_landmark   String?
+  dropoff_lat       Float
+  dropoff_lng       Float
+  dropoff_landmark  String?
+  ride_type         RideType
+  fare_type         FareType
+  base_fare         Float
+  final_fare        Float?
+  distance_km       Float?
+  duration_minutes  Int?
+  surge_multiplier  Float        @default(1.0)
+  discount_amount   Float        @default(0.0)
+  status            RideStatus   @default(PENDING)
+  created_at        DateTime     @default(now())
+
+  driver            Driver?      @relation(fields: [driver_id], references: [driver_id])
+  passengers        RidePassenger[]
+  ratings           Rating[]
+  sos_alerts        SosAlert[]
+  complaints        Complaint[]  @relation("RideComplaints")
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model RidePassenger {
+  ride_passenger_id String       @id @default(uuid())
+  ride_id           String
+  passenger_id      String
+  fare_share        Float
+  payment_status    PaymentStatus @default(PENDING)
+  pickup_landmark   String?
+  pickup_lat        Float?
+  pickup_lng        Float?
+  dropoff_landmark  String?
+  dropoff_lat       Float?
+  dropoff_lng       Float?
+
+  ride              Ride         @relation(fields: [ride_id], references: [ride_id])
+  passenger         User         @relation(fields: [passenger_id], references: [user_id])
+  payment           Payment?
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TELEBIRR
+  EBIRR
+  WALLET
+}
+
+model Payment {
+  payment_id        String        @id @default(uuid())
+  ride_passenger_id String        @unique
+  amount            Float
+  payment_method    PaymentMethod
+  payment_status    PaymentStatus @default(PENDING)
+  transaction_ref   String?
+  created_at        DateTime      @default(now())
+
+  ride_passenger    RidePassenger @relation(fields: [ride_passenger_id], references: [ride_passenger_id])
+}
+
+model Rating {
+  rating_id    String    @id @default(uuid())
+  ride_id      String
+  rated_by     String
+  rated_user   String
+  score        Int
+  comment      String?
+  created_at   DateTime  @default(now())
+
+  ride         Ride      @relation(fields: [ride_id], references: [ride_id])
+  rater        User      @relation("RatingsGiven", fields: [rated_by], references: [user_id])
+  rated        User      @relation("RatingsReceived", fields: [rated_user], references: [user_id])
+}
+
+enum NotificationType {
+  INFO
+  ALERT
+  PROMO
+}
+
+model Notification {
+  notification_id String    @id @default(uuid())
+  user_id         String
+  title           String
+  message         String
+  type            NotificationType @default(INFO)
+  is_read         Boolean   @default(false)
+  created_at      DateTime  @default(now())
+
+  user            User      @relation(fields: [user_id], references: [user_id])
+}
+
+enum SosStatus {
+  ACTIVE
+  RESOLVED
+  FALSE_ALARM
+}
+
+model SosAlert {
+  alert_id      String    @id @default(uuid())
+  ride_id       String
+  triggered_by  String
+  latitude      Float
+  longitude     Float
+  status        SosStatus @default(ACTIVE)
+  created_at    DateTime  @default(now())
+
+  ride          Ride      @relation(fields: [ride_id], references: [ride_id])
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Complaint {
+  complaint_id      String    @id @default(uuid())
+  ride_id           String
+  submitted_by      String
+  complaint_against String?
+  description       String
+  status            ComplaintStatus @default(OPEN)
+  resolution        String?
+  created_at        DateTime  @default(now())
+
+  ride              Ride      @relation("RideComplaints", fields: [ride_id], references: [ride_id])
+  submitter         User      @relation("SubmittedBy", fields: [submitted_by], references: [user_id])
+}
