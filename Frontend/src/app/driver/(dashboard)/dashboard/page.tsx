@@ -107,7 +107,7 @@ export default function DriverDashboardHomePage() {
     try {
       await api.patch(`/rides/${incomingRide.ride_id}/status`, {
         status: 'ACCEPTED',
-        driver_id: user?.driver?.driver_id || 'dummy_driver_id'
+        driver_id: (user as any)?.driver?.driver_id || 'dummy_driver_id'
       });
       // Set to local storage so the active-ride page can pick it up
       localStorage.setItem("driverActiveRideId", incomingRide.ride_id);

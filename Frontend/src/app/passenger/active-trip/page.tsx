@@ -21,6 +21,8 @@ import {
 import dynamic from "next/dynamic";
 import { api } from "@/lib/api";
 
+const MapClient = dynamic(() => import("@/components/admin/MapClient"), { ssr: false });
+
 // Helper to map landmarks to actual Bahir Dar coordinates
 const getCoords = (landmark: string): [number, number] => {
   const map: Record<string, [number, number]> = {
@@ -153,7 +155,7 @@ export default function ActiveTripPage() {
         <MapClient 
           activeTrips={[{
             ...rideData,
-            status: status === "EN_ROUTE" || status === "ACCEPTED" || status === "ARRIVED" ? 'accepted' : status === "IN_PROGRESS" ? "in_progress" : "completed" // Just a mock status mapping
+            status: status === "en_route" || status === "accepted" || status === "arrived" ? 'accepted' : status === "in_progress" ? "in_progress" : "completed" // Just a mock status mapping
           }]}
           sosEvents={[]}
           pendingRequests={[]}
@@ -167,7 +169,7 @@ export default function ActiveTripPage() {
       {/* Top Floating Status Indicator */}
       <div className="absolute top-6 left-0 w-full px-4 md:px-8 z-10 flex justify-center">
         <div className="bg-white dark:bg-slate-800 shadow-xl rounded-full px-6 py-3 flex items-center gap-3 border border-slate-200 dark:border-slate-700 animate-in slide-in-from-top-10">
-          <div className={`w-3 h-3 rounded-full ${status === 'COMPLETED' ? 'bg-green-500' : 'bg-orange-500 animate-pulse'}`}></div>
+          <div className={`w-3 h-3 rounded-full ${status === 'completed' ? 'bg-green-500' : 'bg-orange-500 animate-pulse'}`}></div>
           <span className="font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white text-sm tracking-wide uppercase">{getStatusText()}</span>
         </div>
       </div>
