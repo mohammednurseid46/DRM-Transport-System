@@ -171,7 +171,7 @@ export const getRide = async (req: AuthRequest, res: Response) => {
           include: { user: true, vehicle: true }
         },
         passengers: {
-          include: { user: true }
+          include: { passenger: true }
         }
       }
     });
@@ -219,7 +219,7 @@ export const getPendingRides = async (req: AuthRequest, res: Response) => {
       },
       include: {
         passengers: {
-          include: { user: true }
+          include: { passenger: true }
         }
       },
       orderBy: { created_at: 'asc' },
