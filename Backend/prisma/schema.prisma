@@ -20,7 +20,7 @@ model User {
   user_id        String    @id @default(uuid())
   full_name      String
   email          String    @unique
-  phone_number   String    @unique
+  phone_number   String?   @unique
   password_hash  String
   role           Role      @default(PASSENGER)
   profile_photo  String?

@@ -22,14 +22,25 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Check if user already exists
+    const trimmedEmail = email.trim().toLowerCase();
+    const orConditions: any[] = [{ email: trimmedEmail }];
+    
+    if (phone_number && phone_number.trim() !== '') {
+      orConditions.push({ phone_number: phone_number.trim() });
+    }
+
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: phone_number ? [{ email }, { phone_number }] : [{ email }]
+        OR: orConditions
       }
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: 'User with this email or phone number already exists' });
+      return res.status(400).json({ 
+        message: existingUser.email.toLowerCase() === trimmedEmail 
+          ? 'User with this email already exists' 
+          : 'User with this phone number already exists' 
+      });
     }
 
     // Hash password
@@ -40,8 +51,8 @@ export const register = async (req: Request, res: Response) => {
     const newUser = await prisma.user.create({
       data: {
         full_name,
-        email,
-        phone_number: phone_number || null,
+        email: trimmedEmail,
+        phone_number: (phone_number && phone_number.trim() !== '') ? phone_number.trim() : null,
         password_hash,
         role: role || 'PASSENGER'
       },
