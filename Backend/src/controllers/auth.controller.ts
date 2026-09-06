@@ -24,10 +24,7 @@ export const register = async (req: Request, res: Response) => {
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email },
-          { phone_number }
-        ]
+        OR: phone_number ? [{ email }, { phone_number }] : [{ email }]
       }
     });
 
@@ -44,7 +41,7 @@ export const register = async (req: Request, res: Response) => {
       data: {
         full_name,
         email,
-        phone_number,
+        phone_number: phone_number || null,
         password_hash,
         role: role || 'PASSENGER'
       },
