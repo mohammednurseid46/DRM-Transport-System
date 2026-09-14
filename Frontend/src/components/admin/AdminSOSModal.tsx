@@ -4,9 +4,10 @@ import { AlertOctagon, PhoneCall, ShieldAlert, X } from 'lucide-react';
 interface AdminSOSModalProps {
   sosData: any;
   onDismiss: () => void;
+  onDispatch?: () => void;
 }
 
-export default function AdminSOSModal({ sosData, onDismiss }: AdminSOSModalProps) {
+export default function AdminSOSModal({ sosData, onDismiss, onDispatch }: AdminSOSModalProps) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -120,7 +121,10 @@ export default function AdminSOSModal({ sosData, onDismiss }: AdminSOSModalProps
             >
               <X size={20} /> Acknowledge & Mute
             </button>
-            <button className="flex-1 bg-red-600 hover:bg-red-700 text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
+            <button 
+              onClick={onDispatch}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-red-600/30 flex items-center justify-center gap-2"
+            >
               <PhoneCall size={20} /> Dispatch Authorities
             </button>
           </div>

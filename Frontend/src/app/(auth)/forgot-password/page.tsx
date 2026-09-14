@@ -17,23 +17,26 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleVerifyAccount = (e: React.FormEvent) => {
+  const handleVerifyAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    setTimeout(() => {
-      const { exists } = checkUserExists(identifier);
+    try {
+      const { exists } = await checkUserExists(identifier);
       if (exists) {
         setStep(2);
       } else {
         setError("No account found with this email/phone.");
       }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -50,8 +53,8 @@ export default function ForgotPasswordPage() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const response = resetPassword(identifier, newPassword);
+    try {
+      const response = await resetPassword(identifier, newPassword);
       if (response.success) {
         setSuccess(response.message);
         setTimeout(() => {
@@ -60,8 +63,11 @@ export default function ForgotPasswordPage() {
       } else {
         setError(response.message);
       }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (

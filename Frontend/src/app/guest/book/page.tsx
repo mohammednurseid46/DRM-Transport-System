@@ -20,7 +20,12 @@ import {
   X,
   Radar
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { RIDE_PRODUCTS, calculateEstimatedFare } from "@/lib/constants/ride-products";
+
+const BookingMap = dynamic(() => import("@/components/BookingMap"), {
+  ssr: false,
+});
 
 const MOCK_LANDMARKS = [
   "BDU Poly Campus (ባሕር ዳር ዩኒቨርሲቲ ፖሊ)",
@@ -419,45 +424,7 @@ export default function GuestBookRidePage() {
 
         {/* Map View (Right Column) */}
         <div className="lg:col-span-7 bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-card relative overflow-hidden min-h-[400px]">
-          {/* Map Base Texture */}
-          <div className="absolute inset-0 opacity-40 mix-blend-screen" style={{ 
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h100v100H0z\' fill=\'%230f172a\'/%3E%3Cpath d=\'M0 50h100M50 0v100\' stroke=\'%23334155\' stroke-width=\'1\'/%3E%3Cpath d=\'M20 0v100M80 0v100M0 20h100M0 80h100\' stroke=\'%231e293b\' stroke-width=\'1\'/%3E%3C/svg%3E")',
-            backgroundSize: '200px 200px'
-          }}></div>
-          
-          {/* Fake Topography/Roads & Route Line */}
-          <div className="absolute inset-0">
-            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-              <path d="M-100 300 Q 200 400 500 200 T 1200 500" fill="none" stroke="#334155" strokeWidth="1" opacity="0.5"/>
-              <path d="M100 -100 Q 300 200 600 800" fill="none" stroke="#334155" strokeWidth="1" opacity="0.5"/>
-              <path d="M800 -100 Q 700 300 900 900" fill="none" stroke="#334155" strokeWidth="1" opacity="0.5"/>
-              
-              {/* Conditional Route Curve if both locations entered */}
-              {pickup && destination && (
-                <>
-                  <path d="M 150 250 Q 400 100 700 200" fill="none" stroke="#E57036" strokeWidth="3" strokeDasharray="5,5" className="drop-shadow-[0_0_5px_rgba(229,112,54,0.8)] animate-[dash_20s_linear_infinite]" />
-                  <circle cx="150" cy="250" r="6" fill="#10b981" />
-                  <circle cx="150" cy="250" r="12" fill="#10b981" opacity="0.3" className="animate-ping" />
-                  <text x="150" y="275" fill="white" fontSize="12" fontWeight="bold" textAnchor="middle" className="drop-shadow-md">Pickup</text>
-
-                  <circle cx="700" cy="200" r="6" fill="#ef4444" />
-                  <text x="700" y="185" fill="white" fontSize="12" fontWeight="bold" textAnchor="middle" className="drop-shadow-md">Drop-off</text>
-                </>
-              )}
-            </svg>
-          </div>
-
-          {/* Map Controls */}
-          <div className="absolute right-6 top-6 flex flex-col gap-2 z-10">
-            <div className="bg-white dark:bg-slate-800/90 backdrop-blur border border-slate-200 dark:border-slate-700 rounded-control flex flex-col shadow-lg overflow-hidden">
-              <button className="p-2.5 hover:bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors border-b border-slate-200 dark:border-slate-700">
-                <Plus size={16} />
-              </button>
-              <button className="p-2.5 hover:bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors">
-                <Minus size={16} />
-              </button>
-            </div>
-          </div>
+          <BookingMap />
 
           {/* Active Drivers Pill */}
           <div className="absolute left-6 top-6 z-10">

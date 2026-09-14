@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { User, resetPassword } from "@/lib/auth";
 import { CheckCircle, XCircle, FileText, UserCheck, Car, Calendar, Search, ShieldAlert, Star, ToggleLeft, ToggleRight, Users } from "lucide-react";
 import { api } from "@/lib/api";
+import { getUsersAction, verifyDriverAction, toggleDriverAvailabilityAction, getDriverDocumentsAction } from "@/actions/users";
 
 export default function DriverManagementPage() {
   const [activeTab, setActiveTab] = useState<"pending" | "verified">("pending");
@@ -11,21 +12,21 @@ export default function DriverManagementPage() {
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [resetPasswordModalDriver, setResetPasswordModalDriver] = useState<any | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [selectedDriverForKyc, setSelectedDriverForKyc] = useState<any | null>(null);
+  const [driverDocuments, setDriverDocuments] = useState<any[]>([]);
+  const [isModalLoading, setIsModalLoading] = useState(false);
 
   const fetchDrivers = async () => {
     try {
-      const data = await api.get('/admin/drivers');
-      setDrivers(data);
-    } catch (err) {
-      console.error("Failed to fetch drivers from backend", err);
-      // Fallback
-      const data = localStorage.getItem("drivers") || localStorage.getItem("dms_users");
-      if (data) {
-        const allUsers = JSON.parse(data);
-        setDrivers(allUsers.filter((u: any) => u.role === "driver"));
+      const res = await getUsersAction();
+      if (res.success && res.users) {
+        setDrivers(res.users.filter((u: any) => u.role === "driver"));
       } else {
         setDrivers([]);
       }
+    } catch (err) {
+      console.error("Failed to fetch drivers", err);
+      setDrivers([]);
     }
   };
 
@@ -38,42 +39,130 @@ export default function DriverManagementPage() {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const handleApprove = (driverId: string) => {
-    const data = localStorage.getItem("drivers") || localStorage.getItem("dms_users") || "[]";
-    const allUsers = JSON.parse(data);
-    const updated = allUsers.map((u: any) => u.id === driverId ? { ...u, is_verified: true } : u);
-    localStorage.setItem("drivers", JSON.stringify(updated));
-    localStorage.setItem("dms_users", JSON.stringify(updated));
-    window.dispatchEvent(new Event("storage"));
-    showNotification("Driver Approved Successfully!", "success");
-    fetchDrivers();
+
+
+  const handleReviewKYC = async (driver: any) => {
+    setSelectedDriverForKyc(driver);
+    setDriverDocuments([]);
+    setIsModalLoading(true);
+    
+    const res = await getDriverDocumentsAction(driver.id);
+    if (res.success) {
+      setDriverDocuments(res.documents || []);
+    } else {
+      showNotification("Failed to fetch documents", "error");
+    }
+    setIsModalLoading(false);
   };
 
-  const handleReject = (driverId: string) => {
-    if (window.confirm("Are you sure you want to reject and remove this driver?")) {
-      const data = localStorage.getItem("drivers") || localStorage.getItem("dms_users") || "[]";
-      const allUsers = JSON.parse(data);
-      const updated = allUsers.filter((u: any) => u.id !== driverId);
-      localStorage.setItem("drivers", JSON.stringify(updated));
-      localStorage.setItem("dms_users", JSON.stringify(updated));
-      window.dispatchEvent(new Event("storage"));
-      showNotification("Driver Rejected and Removed.", "error");
-      fetchDrivers();
+  const handleApproveKycModal = async () => {
+    if (!selectedDriverForKyc) return;
+
+    setIsModalLoading(true);
+    try {
+      const res = await fetch(`/api/admin/drivers/${selectedDriverForKyc.id}/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "APPROVE" }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        showNotification("Driver Approved Successfully!", "success");
+        // Update the drivers state dynamically
+        setDrivers(prev => prev.map(d => d.id === selectedDriverForKyc.id ? { ...d, is_verified: true, status: 'offline' } : d));
+        setSelectedDriverForKyc(null);
+      } else {
+        showNotification(data.message || "Failed to approve driver", "error");
+      }
+    } catch (err) {
+      showNotification("Network error occurred", "error");
+    } finally {
+      setIsModalLoading(false);
     }
   };
 
-  const toggleAvailability = (driverId: string) => {
-    const data = localStorage.getItem("drivers") || localStorage.getItem("dms_users") || "[]";
-    const allUsers = JSON.parse(data);
-    const updated = allUsers.map((u: any) => u.id === driverId ? { ...u, isAvailable: !u.isAvailable } : u);
-    localStorage.setItem("drivers", JSON.stringify(updated));
-    localStorage.setItem("dms_users", JSON.stringify(updated));
-    window.dispatchEvent(new Event("storage"));
-    showNotification("Driver availability updated.", "success");
-    fetchDrivers();
+  const handleRejectKycModal = async () => {
+    if (!selectedDriverForKyc) return;
+
+    setIsModalLoading(true);
+    try {
+      const res = await fetch(`/api/admin/drivers/${selectedDriverForKyc.id}/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "REJECT" }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        showNotification("Driver Rejected Successfully!", "success");
+        // Remove from the pending list
+        setDrivers(prev => prev.filter(d => d.id !== selectedDriverForKyc.id));
+        setSelectedDriverForKyc(null);
+      } else {
+        showNotification(data.message || "Failed to reject driver", "error");
+      }
+    } catch (err) {
+      showNotification("Network error occurred", "error");
+    } finally {
+      setIsModalLoading(false);
+    }
   };
 
-  const handleAdminResetPassword = (e: React.FormEvent) => {
+  const handleReject = async (driverId: string) => {
+    if (!window.confirm("Are you sure you want to reject and remove this driver?")) return;
+    try {
+      const res = await fetch(`/api/admin/drivers/${driverId}/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "REJECT" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showNotification("Driver Rejected Successfully!", "success");
+        setDrivers(prev => prev.filter(d => d.id !== driverId));
+      } else {
+        showNotification(data.message || "Failed to reject driver", "error");
+      }
+    } catch (err) {
+      showNotification("Network error occurred", "error");
+    }
+  };
+
+  const handleApprove = async (driverId: string) => {
+    try {
+      const res = await fetch(`/api/admin/drivers/${driverId}/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "APPROVE" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showNotification("Driver Approved Successfully!", "success");
+        setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, is_verified: true, status: 'offline' } : d));
+      } else {
+        showNotification(data.message || "Failed to approve driver", "error");
+      }
+    } catch (err) {
+      showNotification("Network error occurred", "error");
+    }
+  };
+
+  const toggleAvailability = async (driverId: string, currentAvailability: boolean) => {
+    const res = await toggleDriverAvailabilityAction(driverId, !currentAvailability);
+    if (res.success) {
+      showNotification("Driver availability updated.", "success");
+      fetchDrivers();
+    } else {
+      showNotification(res.message, "error");
+    }
+  };
+
+  const handleAdminResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetPasswordModalDriver) return;
     
@@ -82,7 +171,7 @@ export default function DriverManagementPage() {
       return;
     }
 
-    const response = resetPassword(resetPasswordModalDriver.email, newPassword);
+    const response = await resetPassword(resetPasswordModalDriver.email, newPassword);
     if (response.success) {
       showNotification("Driver password reset successfully.", "success");
       setResetPasswordModalDriver(null);
@@ -255,7 +344,7 @@ export default function DriverManagementPage() {
                 </div>
 
                 {/* Document Previews (Pending Only) */}
-                {driver.status === 'pending' && (
+                {!driver.is_verified && (
                   <div className="space-y-2">
                     <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Uploaded Documents</p>
                     <div className="flex gap-2">
@@ -273,7 +362,7 @@ export default function DriverManagementPage() {
                 )}
 
                 {/* Actions */}
-                {driver.status === 'pending' && (
+                {!driver.is_verified && (
                   <div className="flex gap-3 pt-2 mt-2 border-t border-slate-200 dark:border-slate-700">
                     <button 
                       onClick={() => handleReject(driver.id)}
@@ -283,19 +372,26 @@ export default function DriverManagementPage() {
                     </button>
                     <button 
                       onClick={() => handleApprove(driver.id)}
-                      className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-slate-900 dark:text-slate-900 dark:text-white text-sm font-bold rounded-lg shadow-lg shadow-green-500/20 transition-colors"
+                      className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white text-sm font-bold rounded-lg shadow-lg shadow-green-500/20 transition-colors flex items-center justify-center gap-2"
                     >
-                      Approve & Verify
+                      <CheckCircle size={16} /> Approve KYC
+                    </button>
+                    <button 
+                      onClick={() => handleReviewKYC(driver)}
+                      className="py-2.5 px-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-lg transition-colors flex items-center justify-center"
+                      title="Review KYC Documents"
+                    >
+                      <FileText size={16} />
                     </button>
                   </div>
                 )}
                 
-                {driver.status !== 'pending' && (
+                {driver.is_verified && (
                   <div className="flex flex-col gap-3 pt-2 mt-2 border-t border-slate-200 dark:border-slate-700">
                      <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Live Status</span>
                        <button 
-                         onClick={() => toggleAvailability(driver.id)}
+                         onClick={() => toggleAvailability(driver.id, driver.isAvailable || driver.status === 'online')}
                          className={`flex items-center gap-2 ${driver.status === 'online' || driver.isAvailable ? 'text-green-600 dark:text-green-500' : 'text-slate-400'} transition-colors`}
                        >
                          {driver.status === 'online' || driver.isAvailable ? <span className="text-xs font-bold uppercase tracking-wider">Online</span> : <span className="text-xs font-bold uppercase tracking-wider">Offline</span>}
@@ -359,6 +455,77 @@ export default function DriverManagementPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* KYC Review Modal */}
+      {selectedDriverForKyc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex items-start justify-between bg-slate-50 dark:bg-slate-900/50">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <ShieldAlert className="text-orange-500" /> KYC Document Review
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Reviewing verification for {selectedDriverForKyc.name}</p>
+              </div>
+              <button onClick={() => setSelectedDriverForKyc(null)} className="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors p-2 bg-slate-200/50 dark:bg-slate-800 rounded-full">
+                <XCircle size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-black/10">
+              {isModalLoading ? (
+                <div className="flex flex-col items-center justify-center h-48 text-slate-500">
+                  <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="font-medium animate-pulse">Loading documents...</p>
+                </div>
+              ) : driverDocuments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-48 text-slate-500 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 border-dashed">
+                  <FileText size={32} className="mb-2 opacity-50" />
+                  <p className="font-medium">No documents uploaded.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {driverDocuments.map((doc, idx) => (
+                    <div key={idx} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                      <div className="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
+                         <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">{doc.document_type || "Document"}</span>
+                         {doc.verified && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 uppercase">Verified</span>}
+                      </div>
+                      <div className="p-4 flex flex-col items-center justify-center aspect-video bg-slate-100 dark:bg-black/20">
+                        {doc.file_url.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                          <img src={doc.file_url} alt={doc.document_type} className="max-h-full max-w-full object-contain rounded" />
+                        ) : (
+                          <div className="text-center">
+                            <FileText size={48} className="mx-auto text-slate-400 mb-2" />
+                            <a href={doc.file_url} target="_blank" rel="noreferrer" className="text-sm font-medium text-blue-500 hover:underline">View Document file</a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex gap-4">
+              <button 
+                onClick={handleRejectKycModal}
+                disabled={isModalLoading}
+                className="flex-1 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-500 font-bold py-3 px-4 rounded-xl transition-colors border border-red-200 dark:border-red-500/20 disabled:opacity-50"
+              >
+                Reject & Request Changes
+              </button>
+              <button 
+                onClick={handleApproveKycModal}
+                disabled={isModalLoading}
+                className="flex-[2] bg-green-500 hover:bg-green-600 text-slate-900 font-bold py-3 px-4 rounded-xl transition-colors shadow-lg shadow-green-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <CheckCircle size={20} /> Approve & Verify Driver
+              </button>
+            </div>
           </div>
         </div>
       )}

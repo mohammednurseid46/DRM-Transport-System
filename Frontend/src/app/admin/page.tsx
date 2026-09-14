@@ -12,6 +12,8 @@ import {
 import AdminLiveMap from "@/components/admin/AdminLiveMap";
 import AdminDispatchFeed, { DispatchEvent } from "@/components/admin/AdminDispatchFeed";
 import AdminSOSModal from "@/components/admin/AdminSOSModal";
+import { api } from "@/lib/api";
+import { resolveSosAction } from "@/actions/sos";
 
 export default function AdminDashboardPage() {
   const [activeRides, setActiveRides] = useState<any[]>([]);
@@ -29,13 +31,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const token = localStorage.getItem("dms_token");
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const res = await fetch(`${API_URL}/admin/dashboard`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) return;
-        const data = await res.json();
+        const data = await api.get('/admin/dashboard');
 
         // 1. Update KPIs
         setActiveCount(data.stats.activeRidesCount);
@@ -209,14 +205,29 @@ export default function AdminDashboardPage() {
       {activeSOSCount > 0 && (
         <AdminSOSModal 
           sosData={sosEvents.find(s => s.status === 'active')} 
-          onDismiss={() => {
-            const updated = sosEvents.map(s => 
-              s.status === 'active' ? { ...s, status: 'resolved' as const } : s
-            );
-            localStorage.setItem("emergencySOS", JSON.stringify(updated));
-            window.dispatchEvent(new Event("storage"));
-            window.dispatchEvent(new Event("sos-updated"));
-          }} 
+          onDismiss={async () => {
+            const activeSos = sosEvents.find(s => s.status === 'active');
+            if (activeSos) {
+              // Optimistic update to close modal instantly
+              setSosEvents(prev => prev.map(s => s.id === activeSos.id ? { ...s, status: 'resolved' } : s));
+              setActiveSOSCount(prev => Math.max(0, prev - 1));
+              
+              // Call backend
+              await resolveSosAction(activeSos.id);
+            }
+          }}
+          onDispatch={async () => {
+            const activeSos = sosEvents.find(s => s.status === 'active');
+            if (activeSos) {
+              alert("Authorities dispatched to location: " + activeSos.latitude + ", " + activeSos.longitude);
+              // Optimistic update to close modal instantly
+              setSosEvents(prev => prev.map(s => s.id === activeSos.id ? { ...s, status: 'resolved' } : s));
+              setActiveSOSCount(prev => Math.max(0, prev - 1));
+              
+              // Call backend
+              await resolveSosAction(activeSos.id);
+            }
+          }}
         />
       )}
 

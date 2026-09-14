@@ -19,6 +19,7 @@ import {
   Star
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { getUsersAction } from "@/actions/users";
 
 
 const MOCK_RIDE_HISTORY = [
@@ -37,20 +38,13 @@ export default function AdminPassengersPage() {
   useEffect(() => {
     const fetchPassengers = async () => {
       try {
-        const data = await api.get('/admin/passengers');
-        setPassengers(data);
-      } catch (err) {
-        console.error("Failed to fetch passengers", err);
-        // Fallback
-        const savedUsers = localStorage.getItem("users") || localStorage.getItem("dms_users");
-        if (savedUsers) {
-          const parsedUsers = JSON.parse(savedUsers);
-          const filtered = parsedUsers.filter((u: any) => u.role === "user" || u.role === "passenger");
-          
+        const res = await getUsersAction();
+        if (res.success && res.users) {
+          const filtered = res.users.filter((u: any) => u.role === "user" || u.role === "passenger");
           const enhancedFiltered = filtered.map((u: any) => ({
             ...u,
             status: u.status || "active",
-            registeredAt: u.registeredAt || u.createdAt || new Date().toISOString(),
+            registeredAt: u.createdAt || new Date().toISOString(),
             totalRides: u.totalRides || 0,
             avgRating: u.avgRating || "N/A",
             totalSpent: u.totalSpent || 0
@@ -59,6 +53,9 @@ export default function AdminPassengersPage() {
         } else {
           setPassengers([]);
         }
+      } catch (err) {
+        console.error("Failed to fetch passengers", err);
+        setPassengers([]);
       }
     };
     fetchPassengers();

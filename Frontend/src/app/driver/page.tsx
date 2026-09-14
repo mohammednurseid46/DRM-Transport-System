@@ -17,7 +17,8 @@ import {
   Car,
   FileCheck
 } from "lucide-react";
-import { toggleDriverAvailability, getCurrentUser, User } from "@/lib/auth";
+import { getCurrentUser, User } from "@/lib/auth";
+import { toggleDriverAvailabilityAction } from "@/actions/users";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Dynamically import Leaflet Map (SSR False)
@@ -46,12 +47,21 @@ export default function DriverDashboardPage() {
   const [driverInfo, setDriverInfo] = useState<User | null>(null);
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (user && user.role === "driver") {
-      setDriverInfo(user);
-      setIsOnline(user.isAvailable || false);
-    }
+    const initUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user && user.role === "driver") {
+          setDriverInfo(user);
+          setIsOnline(user.isAvailable || false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch driver info:", error);
+      }
+    };
+    initUser();
+  }, []);
 
+  useEffect(() => {
     // Listen for cross-tab storage events (e.g., from Passenger App)
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'dms_ride_requests' || e.key === 'passengerNotifications') {
@@ -75,7 +85,7 @@ export default function DriverDashboardPage() {
     }
     
     if (driverInfo) {
-      toggleDriverAvailability(driverInfo.id, newState);
+      toggleDriverAvailabilityAction(driverInfo.id, newState);
       setDriverInfo({ ...driverInfo, isAvailable: newState });
     }
   };
@@ -99,6 +109,33 @@ export default function DriverDashboardPage() {
     setRating(0);
     setRideState("idle");
   };
+
+  if (driverInfo === null) {
+    return (
+      <div className="h-full flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  if (!driverInfo.is_verified) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-900 p-6 text-center">
+        <ShieldAlert className="w-20 h-20 text-orange-500 mb-6" />
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Verification in Progress</h1>
+        <p className="text-slate-600 dark:text-slate-400 max-w-md mb-8">
+          Your account is currently under review by our admin team. Please ensure you have uploaded all required KYC documents. You will gain access to the driver dashboard once approved.
+        </p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold shadow-lg transition-colors flex items-center gap-2"
+        >
+          <Clock size={18} />
+          Check Status
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col relative">

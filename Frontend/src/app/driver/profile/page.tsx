@@ -28,19 +28,15 @@ export default function DriverProfilePage() {
       try {
         const data = await api.get('/auth/profile');
         
-        const currentUserStr = localStorage.getItem('dms_current_user');
-        const localData = currentUserStr ? JSON.parse(currentUserStr) : {};
-        
         const mergedUser = {
-          ...localData,
           id: data.user_id,
           name: data.full_name,
           email: data.email,
           phone: data.phone_number,
-          is_verified: data.is_active, // Assuming is_active maps to verified for now
-          // Fetch vehicle info if driver is included
-          vehicleModel: data.driver?.vehicle?.model || localData.vehicleModel || "Toyota Corolla",
-          plateNumber: data.driver?.vehicle?.plate_number || localData.plateNumber || "AA 12345"
+          role: "driver" as "driver",
+          is_verified: data.is_active, 
+          vehicleModel: data.driver?.vehicle?.model || "Toyota Corolla",
+          plateNumber: data.driver?.vehicle?.plate_number || "AA 12345"
         };
         
         setUser(mergedUser);
@@ -53,7 +49,7 @@ export default function DriverProfilePage() {
         });
       } catch (err) {
         console.error("Failed to load profile", err);
-        const currentUser = getCurrentUser();
+        const currentUser = await getCurrentUser();
         if (!currentUser || currentUser.role !== "driver") {
           router.push("/login");
           return;
@@ -78,26 +74,18 @@ export default function DriverProfilePage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleSaveProfile = () => {
+  const updateDatabaseUser = async (updatedUser: any) => {
+    // In a full implementation this would call a server action to update DB.
+    // For now we just update local state.
+    setUser(updatedUser);
+  };
+
+  const handleSaveProfile = async () => {
     if (!user) return;
     
     const updatedUser = { ...user, ...formData };
     
-    // Update current user
-    localStorage.setItem('dms_current_user', JSON.stringify(updatedUser));
-    
-    // Update in users array
-    const usersStr = localStorage.getItem('dms_users');
-    if (usersStr) {
-      const users: AuthUser[] = JSON.parse(usersStr);
-      const userIndex = users.findIndex(u => u.id === updatedUser.id);
-      if (userIndex !== -1) {
-        users[userIndex] = updatedUser;
-        localStorage.setItem('dms_users', JSON.stringify(users));
-      }
-    }
-    
-    setUser(updatedUser);
+    await updateDatabaseUser(updatedUser);
     setIsEditing(false);
     showToast("Profile updated successfully!");
   };

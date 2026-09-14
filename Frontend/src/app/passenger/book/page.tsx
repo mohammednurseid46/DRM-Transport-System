@@ -24,7 +24,7 @@ import dynamic from "next/dynamic";
 import { RIDE_PRODUCTS, calculateEstimatedFare } from "@/lib/constants/ride-products";
 import { api } from "@/lib/api";
 
-const MapClient = dynamic(() => import("@/components/admin/MapClient"), {
+const BookingMap = dynamic(() => import("@/components/BookingMap"), {
   ssr: false,
 });
 
@@ -428,23 +428,7 @@ export default function PassengerBookRidePage() {
 
         {/* Map View (Right Column) */}
         <div className="lg:col-span-7 bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-card relative overflow-hidden min-h-[400px]">
-          <MapClient 
-            activeTrips={pickup && destination ? [{
-              rideId: 'preview',
-              pickupLandmark: pickup,
-              dropoffLandmark: destination,
-              status: 'pending'
-            }] : []}
-            sosEvents={[]}
-            pendingRequests={[]}
-            idleDrivers={[
-              { id: "drv_1", driver: { name: "Abebe K." }, currentLocation: [11.5936, 37.3908], status: "available" },
-              { id: "drv_2", driver: { name: "Solomon T." }, currentLocation: [11.5980, 37.3980], status: "available" }
-            ]}
-            filter="ACTIVE"
-            onMarkerClick={() => {}}
-            getCoords={getCoords}
-          />
+          <BookingMap />
 
           {/* Active Drivers Pill */}
           <div className="absolute left-6 top-6 z-10 pointer-events-none">

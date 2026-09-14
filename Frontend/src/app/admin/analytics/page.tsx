@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { TrendingUp, TrendingDown, Users, Car, CreditCard, Activity, Calendar, Download } from "lucide-react";
 
+import { getAnalyticsAction } from "@/actions/analytics";
+
 export default function AdminAnalyticsPage() {
   const [timeRange, setTimeRange] = useState<"Today" | "7 Days" | "30 Days">("7 Days");
 
@@ -15,41 +17,18 @@ export default function AdminAnalyticsPage() {
   });
 
   useEffect(() => {
-    const computeAnalytics = () => {
-      // Revenue & Rides
-      const passengerRidesStr = localStorage.getItem("passengerRides");
-      let rev = 0;
-      let rides = 0;
-      if (passengerRidesStr) {
-        const parsedRides = JSON.parse(passengerRidesStr);
-        rides = parsedRides.length;
-        rev = parsedRides.reduce((sum: number, r: any) => sum + (r.fare || 0), 0);
+    const computeAnalytics = async () => {
+      const res = await getAnalyticsAction();
+      if (res.success && res.metrics) {
+        setMetrics(res.metrics);
       }
-
-      // Active Drivers
-      const usersStr = localStorage.getItem("dms_users");
-      let drivers = 0;
-      if (usersStr) {
-        const parsedUsers = JSON.parse(usersStr);
-        drivers = parsedUsers.filter((u: any) => u.role === "driver" && u.is_verified && u.isAvailable).length;
-      }
-
-      setMetrics({
-        totalRevenue: rev,
-        platformCommission: rev * 0.1,
-        totalRides: rides,
-        activeDrivers: drivers,
-        cancellationRate: "0.0%", 
-      });
     };
 
     computeAnalytics();
     const interval = setInterval(computeAnalytics, 5000);
-    window.addEventListener("storage", computeAnalytics);
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener("storage", computeAnalytics);
     };
   }, []);
 

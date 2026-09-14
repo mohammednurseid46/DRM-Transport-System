@@ -11,17 +11,22 @@ export const useAuth = () => {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Initialize mock data when auth hook is first used on the client
-    initializeMockData();
-    
     // Check current user
-    const currentUser = getCurrentUser();
-    setUser(currentUser);
-    setIsLoading(false);
+    const checkUser = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkUser();
   }, [pathname]); // Re-check on route changes
 
-  const handleLogout = () => {
-    logoutUser();
+  const handleLogout = async () => {
+    await logoutUser();
     setUser(null);
     router.push("/login");
   };

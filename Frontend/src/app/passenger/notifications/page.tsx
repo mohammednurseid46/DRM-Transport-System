@@ -26,15 +26,14 @@ export default function PassengerNotificationsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    // Removed localStorage fetching since backend will provide this later.
-
-    // Auto-generate contextual initial records if empty
+    const checkUser = async () => {
+      const user = await getCurrentUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      
+      // Auto-generate contextual initial records if empty
     const initialNotifications: Notification[] = [
       { 
         id: Date.now() + 1, 
@@ -73,8 +72,10 @@ export default function PassengerNotificationsPage() {
       }
     ];
 
-    setNotifications(initialNotifications);
-    setIsLoading(false);
+      setNotifications(initialNotifications);
+      setIsLoading(false);
+    };
+    checkUser();
   }, [router]);
 
   const saveNotifications = (newNotifications: Notification[]) => {

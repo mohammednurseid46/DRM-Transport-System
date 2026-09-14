@@ -137,7 +137,7 @@ export default function LandingPage() {
 
       <main className="flex-1 pt-20">
         {/* Hero Section */}
-        <section className="relative flex min-h-[90vh] flex-col items-center justify-center px-6 text-center md:px-12 overflow-hidden">
+        <section className="relative flex flex-col items-center justify-center text-center py-20 px-6 md:px-12 min-h-[90vh] overflow-hidden">
           {/* Background Gradients */}
           <div className="absolute top-1/4 -left-1/4 h-96 w-96 rounded-full bg-orange-500 dark:bg-orange-600/10 blur-[120px]"></div>
           <div className="absolute bottom-1/4 -right-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]"></div>
@@ -185,7 +185,7 @@ export default function LandingPage() {
         </section>
 
         {/* Features Grid */}
-        <section id="features" className="py-24 px-6 md:px-12 bg-black/20 border-y border-slate-200 dark:border-slate-700 relative z-10">
+        <section id="features" className="py-24 px-6 md:px-12 bg-slate-50 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-700 relative z-10">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white mb-4">Why Choose Dream More?</h2>
@@ -393,102 +393,67 @@ export default function LandingPage() {
                          </div>
                       </div>
                    </div>
-
-                   {/* Passenger Card Snippet */}
-                   <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 mb-6">
-                      <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-500">
-                         <UserCircle size={24} />
-                      </div>
-                      <div className="flex-1">
-                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-bold text-slate-900 dark:text-white">Alemayehu T.</p>
-                            <p className="text-xs font-bold flex items-center gap-1 text-slate-900 dark:text-white">
-                               4.9 <Star size={12} className="fill-orange-400 text-orange-400" />
-                            </p>
-                         </div>
-                         <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                            <Phone size={10} /> 0911••••44
-                         </p>
-                      </div>
-                   </div>
-
-                   {/* Interactive Buttons */}
-                   <div className="flex gap-3">
-                      <button className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-green-500/20 transition-colors flex items-center justify-center gap-2">
-                         Accept <span className="text-green-100 text-xs">(30s)</span>
-                      </button>
-                      <button className="w-1/3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-xl transition-colors">
-                         Decline
-                      </button>
-                   </div>
-                   
-                </div>
-             </div>
-          </div>
+                 </div>
+              </div>
+           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer id="about" className="border-t border-slate-200 dark:border-slate-700 bg-black/40 py-12 px-6 md:px-12 relative z-10">
+      <footer id="about" className="border-t border-gray-800 bg-gray-900 text-gray-300 py-12 px-6 md:px-12 relative z-10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div className="md:col-span-1 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="bg-orange-500 dark:bg-orange-600 p-1 rounded-md">
-                <Zap size={16} className="text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white fill-current" />
+              <div className="bg-orange-500 p-1 rounded-md">
+                <Zap size={16} className="text-white fill-current" />
               </div>
-              <span className="text-lg font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">Dream More</span>
+              <span className="text-lg font-bold text-white">Dream More</span>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-500 leading-relaxed">
+            <p className="text-sm text-gray-400 leading-relaxed">
               Transforming the way you move. Reliable, secure, and modern transportation at your fingertips.
             </p>
           </div>
 
           <div>
-            <h4 className="text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white font-bold mb-4">Platform</h4>
-            <ul className="space-y-2 text-sm text-slate-500 dark:text-slate-500">
-              <li><Link href="/register" className="hover:text-orange-600 dark:text-orange-500 transition-colors">Passenger App</Link></li>
-              <li><Link href="/admin" className="hover:text-orange-600 dark:text-orange-500 transition-colors">Admin Dashboard</Link></li>
+            <h4 className="text-white font-bold mb-4">Platform</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><Link href="/register" className="hover:text-orange-500 transition-colors">Passenger App</Link></li>
+              <li><Link href="/admin" className="hover:text-orange-500 transition-colors">Admin Dashboard</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white font-bold mb-4">Drivers</h4>
-            <ul className="space-y-2 text-sm text-slate-500 dark:text-slate-500">
-              <li><Link href="/driver-register" className="hover:text-orange-600 dark:text-orange-500 transition-colors">Driver Registration</Link></li>
-              <li><Link href="/login" className="hover:text-orange-600 dark:text-orange-500 transition-colors">Driver Portal Login</Link></li>
+            <h4 className="text-white font-bold mb-4">Drivers</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><Link href="/driver-register" className="hover:text-orange-500 transition-colors">Driver Registration</Link></li>
+              <li><Link href="/login" className="hover:text-orange-500 transition-colors">Driver Portal Login</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white font-bold mb-4">Company</h4>
-            <ul className="space-y-2 text-sm text-slate-500 dark:text-slate-500">
-              <li><Link href="#" className="hover:text-orange-600 dark:text-orange-500 transition-colors">About Us</Link></li>
-              <li><Link href="#" className="hover:text-orange-600 dark:text-orange-500 transition-colors">Careers</Link></li>
-              <li><Link href="#" className="hover:text-orange-600 dark:text-orange-500 transition-colors">Contact</Link></li>
+            <h4 className="text-white font-bold mb-4">Company</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><Link href="#" className="hover:text-orange-500 transition-colors">About Us</Link></li>
+              <li><Link href="#" className="hover:text-orange-500 transition-colors">Careers</Link></li>
+              <li><Link href="#" className="hover:text-orange-500 transition-colors">Contact</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white font-bold mb-4">Connect</h4>
+            <h4 className="text-white font-bold mb-4">Connect</h4>
             <div className="flex gap-4 text-sm font-medium">
-              <a href="#" className="text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white transition-colors">
-                Twitter
-              </a>
-              <a href="#" className="text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white transition-colors">
-                Facebook
-              </a>
-              <a href="#" className="text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white transition-colors">
-                Instagram
-              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">Twitter</a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">Facebook</a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">Instagram</a>
             </div>
           </div>
         </div>
         
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between pt-8 border-t border-slate-200 dark:border-slate-700 text-xs text-gray-600 gap-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between pt-8 border-t border-gray-800 text-xs text-gray-500 gap-4">
           <p>© 2026 Dream More TMS. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-slate-600 dark:text-slate-300">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-600 dark:text-slate-300">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-gray-300">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-gray-300">Terms of Service</Link>
           </div>
         </div>
       </footer>

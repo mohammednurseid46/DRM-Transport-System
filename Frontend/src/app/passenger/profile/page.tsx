@@ -42,16 +42,12 @@ export default function PassengerProfilePage() {
     const loadProfile = async () => {
       try {
         const data = await api.get('/auth/profile');
-        // Merge backend profile with local mock data for landmarks/contacts
-        const currentUserStr = localStorage.getItem('dms_current_user');
-        const localData = currentUserStr ? JSON.parse(currentUserStr) : {};
-        
         const mergedUser = {
-          ...localData,
           id: data.user_id,
           name: data.full_name,
           email: data.email,
           phone: data.phone_number,
+          role: "user" as "user",
         };
         
         setUser(mergedUser);
@@ -59,12 +55,11 @@ export default function PassengerProfilePage() {
           name: mergedUser.name || "",
           phone: mergedUser.phone || "",
           email: mergedUser.email || "",
-          paymentMethod: mergedUser.paymentMethod || "Telebirr"
+          paymentMethod: "Telebirr"
         });
       } catch (err) {
         console.error("Failed to load profile", err);
-        // Fallback to local storage if API fails or token is missing
-        const currentUser = getCurrentUser() as PassengerUser;
+        const currentUser = await getCurrentUser() as PassengerUser;
         if (!currentUser) {
           router.push("/login");
           return;
@@ -74,7 +69,7 @@ export default function PassengerProfilePage() {
           name: currentUser.name || "",
           phone: currentUser.phone || "",
           email: currentUser.email || "",
-          paymentMethod: currentUser.paymentMethod || "Telebirr"
+          paymentMethod: "Telebirr"
         });
       } finally {
         setIsLoadingProfile(false);
@@ -89,9 +84,9 @@ export default function PassengerProfilePage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const updateLocalStorageUser = (updatedUser: PassengerUser) => {
-    // We only update current user locally since there's no backend PUT /profile yet
-    localStorage.setItem('dms_current_user', JSON.stringify(updatedUser));
+  const updateDatabaseUser = async (updatedUser: PassengerUser) => {
+    // In a real app, call a server action here to update profile in DB.
+    // For now we just update state since we don't have a profile update action.
     setUser(updatedUser);
   };
 
@@ -99,9 +94,7 @@ export default function PassengerProfilePage() {
     if (!user) return;
     const updatedUser = { ...user, ...formData };
     
-    // In a full implementation, we'd PUT to /api/auth/profile here.
-    // Since backend lacks this, we just update local storage.
-    updateLocalStorageUser(updatedUser);
+    await updateDatabaseUser(updatedUser);
     setIsEditing(false);
     showToast("Profile updated successfully!");
   };
@@ -113,7 +106,7 @@ export default function PassengerProfilePage() {
       ...user,
       emergencyContacts: [...(user.emergencyContacts || []), contact]
     };
-    updateLocalStorageUser(updatedUser);
+    updateDatabaseUser(updatedUser);
     setShowContactModal(false);
     setNewContact({ name: "", phone: "", relationship: "" });
     showToast("Emergency contact added!");
@@ -125,7 +118,7 @@ export default function PassengerProfilePage() {
       ...user,
       emergencyContacts: (user.emergencyContacts || []).filter(c => c.id !== id)
     };
-    updateLocalStorageUser(updatedUser);
+    updateDatabaseUser(updatedUser);
   };
 
   const handleAddLandmark = () => {
@@ -135,7 +128,7 @@ export default function PassengerProfilePage() {
       ...user,
       favoriteLandmarks: [...(user.favoriteLandmarks || []), landmark]
     };
-    updateLocalStorageUser(updatedUser);
+    updateDatabaseUser(updatedUser);
     setShowLandmarkModal(false);
     showToast("Favorite landmark added!");
   };
@@ -146,7 +139,7 @@ export default function PassengerProfilePage() {
       ...user,
       favoriteLandmarks: (user.favoriteLandmarks || []).filter(l => l.id !== id)
     };
-    updateLocalStorageUser(updatedUser);
+    updateDatabaseUser(updatedUser);
   };
 
   const getMaskedPhone = (phone: string) => {

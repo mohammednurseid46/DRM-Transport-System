@@ -123,6 +123,14 @@ export default function AdminLayout({
       
       <div className="p-4 mb-4 space-y-1">
           <Link 
+            href="/admin/profile" 
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-control hover:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white transition-colors"
+          >
+            <UserCircle size={18} />
+            <span className="text-sm">Admin Profile</span>
+          </Link>
+          <Link 
             href="/admin/help" 
             onClick={() => setIsMobileSidebarOpen(false)}
             className="flex items-center gap-3 px-4 py-2.5 rounded-control hover:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white transition-colors"

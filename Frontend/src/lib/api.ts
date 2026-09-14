@@ -6,9 +6,18 @@ const getAuthHeaders = () => {
   };
   
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("dms_token");
+    // 1. Try to get from cookies
+    const match = document.cookie.match(new RegExp('(^| )dms_token=([^;]+)'));
+    let token = null;
+    
+    if (match) {
+      token = match[2];
+    } else {
+      // 2. Fallback to localStorage
+      token = localStorage.getItem("dms_token");
+    }
+
     if (token) {
-      // Remove any extra quotes if token was JSON stringified
       const cleanToken = token.replace(/^"(.*)"$/, '$1');
       headers["Authorization"] = `Bearer ${cleanToken}`;
     }
