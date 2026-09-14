@@ -5,28 +5,30 @@ import prisma from '../config/db.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_for_dev_only';
 
+import { passengerRegisterSchema, driverRegisterSchema } from '../validations/auth.js';
+
 export const register = async (req: Request, res: Response) => {
   try {
-    const { full_name, email, phone_number, password, role } = req.body;
+    const isDriver = req.body.role === 'driver' || req.body.role === 'DRIVER';
+    const schema = isDriver ? driverRegisterSchema : passengerRegisterSchema;
 
-    // Validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'Invalid email format' });
+    // 1. Zod Validation
+    const parseResult = schema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ 
+        message: 'Validation failed', 
+        errors: parseResult.error.errors.map(e => e.message)
+      });
     }
 
-    // Validate password strength
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character' });
-    }
+    const validatedData = parseResult.data;
 
-    // Check if user already exists
-    const trimmedEmail = email.trim().toLowerCase();
+    // 2. Check if user already exists
+    const trimmedEmail = validatedData.email.trim().toLowerCase();
     const orConditions: any[] = [{ email: trimmedEmail }];
     
-    if (phone_number && phone_number.trim() !== '') {
-      orConditions.push({ phone_number: phone_number.trim() });
+    if (validatedData.phone && validatedData.phone.trim() !== '') {
+      orConditions.push({ phone_number: validatedData.phone.trim() });
     }
 
     const existingUser = await prisma.user.findFirst({
@@ -43,28 +45,78 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    // Hash password
+    // 3. Hash password
     const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password, salt);
+    const password_hash = await bcrypt.hash(validatedData.password, salt);
+    const mappedRole = isDriver ? 'DRIVER' : 'PASSENGER';
 
-    // Create user
-    const newUser = await prisma.user.create({
-      data: {
-        full_name,
-        email: trimmedEmail,
-        phone_number: (phone_number && phone_number.trim() !== '') ? phone_number.trim() : null,
-        password_hash,
-        role: role || 'PASSENGER'
-      },
-      select: {
-        user_id: true,
-        full_name: true,
-        email: true,
-        phone_number: true,
-        role: true,
-        created_at: true
-      }
-    });
+    // 4. Create user (and driver/vehicle if applicable)
+    let newUser;
+    if (isDriver) {
+      const driverData = validatedData as any;
+      newUser = await prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+          data: {
+            full_name: driverData.name,
+            email: trimmedEmail,
+            phone_number: driverData.phone.trim(),
+            password_hash,
+            role: mappedRole
+          },
+          select: {
+            user_id: true,
+            full_name: true,
+            email: true,
+            phone_number: true,
+            role: true,
+            created_at: true
+          }
+        });
+
+        const createdVehicle = await tx.vehicle.create({
+          data: {
+            plate_number: driverData.plateNumber,
+            model: driverData.vehicleModel,
+            manufacturer: 'Unknown',
+            year: parseInt(driverData.year, 10),
+            color: driverData.color,
+            vehicle_tier: driverData.tier,
+            seat_capacity: parseInt(driverData.seatCapacity, 10),
+            is_active: false,
+          }
+        });
+
+        await tx.driver.create({
+          data: {
+            user_id: createdUser.user_id,
+            vehicle_id: createdVehicle.vehicle_id,
+            licence_number: driverData.licenceNumber,
+            licence_expiry: new Date(driverData.licenceExpiry),
+            is_verified: false,
+          }
+        });
+
+        return createdUser;
+      });
+    } else {
+      newUser = await prisma.user.create({
+        data: {
+          full_name: validatedData.name,
+          email: trimmedEmail,
+          phone_number: validatedData.phone ? validatedData.phone.trim() : null,
+          password_hash,
+          role: mappedRole
+        },
+        select: {
+          user_id: true,
+          full_name: true,
+          email: true,
+          phone_number: true,
+          role: true,
+          created_at: true
+        }
+      });
+    }
 
     const token = jwt.sign(
       { user_id: newUser.user_id, role: newUser.role },

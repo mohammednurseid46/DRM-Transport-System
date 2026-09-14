@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function main() { console.log('DRIVER BY USER ID', await prisma.driver.findUnique({where: {user_id: '43972a27-eeb0-4784-9bac-ecc81b6ad94c'}})); } main().finally(() => prisma.$disconnect());
