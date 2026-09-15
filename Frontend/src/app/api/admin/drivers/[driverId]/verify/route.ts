@@ -11,7 +11,7 @@ export async function POST(
   try {
     const params = await context.params;
     const currentUser = await getCurrentUserAction();
-    
+
     if (!currentUser || currentUser.role !== "admin") {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
@@ -44,7 +44,7 @@ export async function POST(
       if (action === 'APPROVE') {
         // Auto-create missing driver record to fix 404 errors for incomplete registrations
         let vehicle = await prisma.vehicle.findFirst();
-        
+
         if (!vehicle) {
           vehicle = await prisma.vehicle.create({
             data: {
@@ -58,7 +58,7 @@ export async function POST(
             }
           });
         }
-        
+
         const newDriver = await prisma.driver.create({
           data: {
             user_id: userId,

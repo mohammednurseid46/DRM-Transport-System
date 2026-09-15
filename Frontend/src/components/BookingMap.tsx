@@ -104,10 +104,10 @@ export default function BookingMap({ onLocationSelect, onDriverSelect, defaultLo
 
   return (
     <div className="w-full h-full min-h-[400px] z-0 relative rounded-card overflow-hidden">
-      <MapContainer 
-        center={defaultLocation} 
-        zoom={13} 
-        scrollWheelZoom={true} 
+      <MapContainer
+        center={defaultLocation}
+        zoom={13}
+        scrollWheelZoom={true}
         style={{ height: '100%', width: '100%', zIndex: 0, position: 'absolute', top: 0, left: 0 }}
       >
         <TileLayer
@@ -133,7 +133,7 @@ export default function BookingMap({ onLocationSelect, onDriverSelect, defaultLo
               <div className="flex flex-col items-center p-1 min-w-[120px]">
                 <h3 className="font-bold text-slate-800 text-sm mb-1">{driver.user?.full_name}</h3>
                 <p className="text-xs text-slate-500 mb-3">{driver.vehicle?.model} • ⭐ {driver.rating?.toFixed(1) || "5.0"}</p>
-                <button 
+                <button
                   onClick={() => onDriverSelect && onDriverSelect(driver.driver_id)}
                   className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-1.5 px-4 rounded w-full transition-colors"
                 >
