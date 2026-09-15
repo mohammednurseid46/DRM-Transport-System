@@ -13,7 +13,8 @@ import {
   Navigation,
   User,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Split
 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -22,12 +23,12 @@ const MapClient = dynamic(() => import("@/components/admin/MapClient"), {
 });
 
 export default function PassengerDashboardPage() {
-  // Removed mock booking function
+  const [rideType, setRideType] = useState<"PRIVATE" | "SHARED">("PRIVATE");
 
   return (
-    <div className="flex flex-col md:flex-row w-full h-full">
+    <div className="grid grid-cols-1 md:grid-cols-12 w-full h-full">
       {/* Left Booking Sidebar */}
-      <aside className="w-full md:w-[400px] flex-shrink-0 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col h-1/2 md:h-full overflow-y-auto custom-scrollbar z-10">
+      <aside className="md:col-span-5 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col h-full overflow-y-auto custom-scrollbar z-10 max-h-[calc(100vh-100px)]">
         <div className="p-6 flex-1 flex flex-col">
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white mb-6">Where are you going?</h2>
           
@@ -39,9 +40,8 @@ export default function PassengerDashboardPage() {
               </div>
               <input 
                 type="text" 
-                className="w-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white text-sm rounded-control pl-10 pr-3 py-3 focus:outline-none focus:border-dms-primary/50 transition-colors"
-                defaultValue="Current Location"
-                readOnly
+                className="w-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm rounded-control pl-10 pr-3 py-3 focus:outline-none focus:border-orange-500/50 transition-colors placeholder-slate-500"
+                placeholder="Current Location / Landmark"
               />
             </div>
             <div className="relative">
@@ -50,9 +50,31 @@ export default function PassengerDashboardPage() {
               </div>
               <input 
                 type="text" 
-                className="w-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white text-sm rounded-control pl-10 pr-3 py-3 focus:outline-none focus:border-dms-primary transition-colors placeholder-gray-500"
-                placeholder="Where to?"
+                className="w-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm rounded-control pl-10 pr-3 py-3 focus:outline-none focus:border-orange-500 transition-colors placeholder-slate-500"
+                placeholder="Where to? / Drop-off Landmark"
               />
+            </div>
+          </div>
+
+          {/* Service Mode */}
+          <div className="mb-6">
+            <h3 className="text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase mb-3">Service Mode</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => setRideType("PRIVATE")}
+                className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${rideType === "PRIVATE" ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-500' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400'}`}
+              >
+                <Car size={24} className="mb-1" />
+                <span className="text-xs font-bold">Private Ride</span>
+              </button>
+              <button 
+                onClick={() => setRideType("SHARED")}
+                className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${rideType === "SHARED" ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-500' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400'}`}
+              >
+                <Split size={24} className="mb-1" />
+                <span className="text-xs font-bold">Shared Ride</span>
+                <span className="text-[9px] uppercase tracking-wider text-green-500 mt-1">Split Cost</span>
+              </button>
             </div>
           </div>
 
@@ -131,7 +153,7 @@ export default function PassengerDashboardPage() {
       </aside>
 
       {/* Right Map Area */}
-      <div className="flex-1 bg-slate-900 relative overflow-hidden hidden md:block">
+      <div className="md:col-span-7 bg-slate-900 relative overflow-hidden hidden md:block">
         <MapClient 
           activeTrips={[]}
           sosEvents={[]}

@@ -9,24 +9,36 @@ export const createRide = async (req: AuthRequest, res: Response) => {
     const { 
       pickup_lat, pickup_lng, pickup_landmark, 
       dropoff_lat, dropoff_lng, dropoff_landmark,
-      ride_type, fare_type, distance_km 
+      ride_type, fare_type, payment_method, distance_km, driver_id
     } = req.body;
 
+    // Type casting and validation
+    const p_lat = parseFloat(pickup_lat);
+    const p_lng = parseFloat(pickup_lng);
+    const d_lat = parseFloat(dropoff_lat);
+    const d_lng = parseFloat(dropoff_lng);
+    const dist = distance_km != null ? parseFloat(distance_km) : 0;
+
+    if (isNaN(p_lat) || isNaN(p_lng) || isNaN(d_lat) || isNaN(d_lng)) {
+      return res.status(400).json({ message: "Invalid coordinates provided" });
+    }
+
     // Estimate fare
-    const base_fare = calculateFare(distance_km, ride_type);
+    const base_fare = calculateFare(dist, ride_type);
 
     const ride = await prisma.ride.create({
       data: {
-        pickup_lat,
-        pickup_lng,
+        driver_id: driver_id || undefined,
+        pickup_lat: p_lat,
+        pickup_lng: p_lng,
         pickup_landmark,
-        dropoff_lat,
-        dropoff_lng,
+        dropoff_lat: d_lat,
+        dropoff_lng: d_lng,
         dropoff_landmark,
-        ride_type,
-        fare_type,
-        base_fare,
-        distance_km,
+        ride_type: ride_type || 'PRIVATE',
+        fare_type: fare_type || 'FIXED',
+        base_fare: base_fare || 0,
+        distance_km: dist,
         status: 'PENDING'
       }
     });
@@ -36,20 +48,30 @@ export const createRide = async (req: AuthRequest, res: Response) => {
       data: {
         ride_id: ride.ride_id,
         passenger_id: userId,
-        fare_share: base_fare, // Initially 100%
-        pickup_lat,
-        pickup_lng,
+        fare_share: base_fare || 0, // Initially 100%
+        pickup_lat: p_lat,
+        pickup_lng: p_lng,
         pickup_landmark,
-        dropoff_lat,
-        dropoff_lng,
+        dropoff_lat: d_lat,
+        dropoff_lng: d_lng,
         dropoff_landmark,
       }
     });
 
+    // Record payment preference
+    await prisma.payment.create({
+      data: {
+        ride_passenger_id: ridePassenger.ride_passenger_id,
+        amount: base_fare || 0,
+        payment_method: payment_method || 'CASH',
+        payment_status: 'PENDING'
+      }
+    });
+
     res.status(201).json({ ride, passengerRecord: ridePassenger });
-  } catch (error) {
-    console.error('Create ride error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+  } catch (error: any) {
+    console.error('Ride Booking Error:', error);
+    res.status(500).json({ message: error.message || 'Internal server error' });
   }
 };
 

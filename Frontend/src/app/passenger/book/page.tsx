@@ -50,12 +50,7 @@ const MOCK_LANDMARKS = [
   "New Bus Station / ቀበሌ 14 መናኸሪያ"
 ];
 
-const MOCK_DRIVERS = [
-  { id: "drv_1", name: "Abebe K.", rating: 4.8, carModel: "Toyota Corolla (Silver)", plate: "AA 12345", eta: "3 min away" },
-  { id: "drv_2", name: "Solomon T.", rating: 4.9, carModel: "Hyundai Elantra (White)", plate: "B 98765", eta: "5 min away" },
-  { id: "drv_3", name: "Mekdes A.", rating: 5.0, carModel: "Toyota Yaris (Blue)", plate: "AA 55432", eta: "7 min away" },
-];
-
+// MOCK_DRIVERS removed in favor of dynamic fetching
 export default function PassengerBookRidePage() {
   const router = useRouter();
   
@@ -75,6 +70,7 @@ export default function PassengerBookRidePage() {
   const [isBooking, setIsBooking] = useState(false);
   const [showDiscoveryModal, setShowDiscoveryModal] = useState(false);
   const [isWaitingForDriver, setIsWaitingForDriver] = useState(false);
+  const [availableDrivers, setAvailableDrivers] = useState<any[]>([]);
   
   // Default to Standard Plus or the first available
   const [selectedProductId, setSelectedProductId] = useState<string>(
@@ -90,16 +86,26 @@ export default function PassengerBookRidePage() {
   const estimatedFare = selectedProduct ? calculateEstimatedFare(selectedProduct, mockDistance, mockDuration) : 0;
   const finalFare = rideType === "SHARED" ? Math.max(estimatedFare / 2, selectedProduct?.minimumFare || 0) : estimatedFare;
 
-  const handleBookRide = () => {
+  const handleBookRide = async () => {
     if (!selectedProduct || !pickup || !destination) return;
     
     setIsBooking(true);
     
-    // Simulate finding drivers process
-    setTimeout(() => {
-      setIsBooking(false);
-      setShowDiscoveryModal(true);
-    }, 1500);
+    try {
+      const pCoords = getCoords(pickup);
+      const res = await api.get(`/drivers/active?lat=${pCoords[0]}&lng=${pCoords[1]}`);
+      if (res && res.drivers) {
+        setAvailableDrivers(res.drivers);
+      } else {
+        setAvailableDrivers([]);
+      }
+    } catch (e) {
+      console.error(e);
+      setAvailableDrivers([]);
+    }
+
+    setIsBooking(false);
+    setShowDiscoveryModal(true);
   };
 
   const handleConfirmRide = async (driverId: string) => {
@@ -111,6 +117,7 @@ export default function PassengerBookRidePage() {
       const dCoords = getCoords(destination);
       
       const res = await api.post('/rides', {
+        driver_id: driverId,
         pickup_lat: pCoords[0],
         pickup_lng: pCoords[1],
         pickup_landmark: pickup,
@@ -118,7 +125,8 @@ export default function PassengerBookRidePage() {
         dropoff_lng: dCoords[1],
         dropoff_landmark: destination,
         ride_type: rideType,
-        fare_type: "CASH", // Assuming default for now
+        fare_type: "FIXED",
+        payment_method: "CASH", 
         distance_km: mockDistance
       });
       
@@ -428,7 +436,7 @@ export default function PassengerBookRidePage() {
 
         {/* Map View (Right Column) */}
         <div className="lg:col-span-7 bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-card relative overflow-hidden min-h-[400px]">
-          <BookingMap />
+          <BookingMap onDriverSelect={handleConfirmRide} />
 
           {/* Active Drivers Pill */}
           <div className="absolute left-6 top-6 z-10 pointer-events-none">
@@ -520,28 +528,42 @@ export default function PassengerBookRidePage() {
               </div>
             </div>
 
-            <div className="p-2 max-h-[50vh] overflow-y-auto">
-              {MOCK_DRIVERS.map((driver) => (
-                <div key={driver.id} className="flex flex-col sm:flex-row items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-xl transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group">
+            <div className="p-2 max-h-[300px] overflow-y-auto">
+              {availableDrivers.length === 0 ? (
+                <div className="text-center p-8 text-slate-500">No active drivers nearby.</div>
+              ) : availableDrivers.map((driver) => (
+                <div key={driver.driver_id} className="flex flex-col sm:flex-row items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-xl transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group">
                   <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-lg font-bold text-slate-500 dark:text-slate-400 shrink-0">
-                    {driver.name.charAt(0)}
+                    {driver.user?.full_name?.charAt(0) || 'D'}
                   </div>
                   <div className="flex-1 text-center sm:text-left">
                     <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                      <h4 className="font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">{driver.name}</h4>
+                      <h4 className="font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">{driver.user?.full_name || 'Unknown Driver'}</h4>
                       <span className="flex items-center text-xs font-bold bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-md text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                        <Star size={10} className="text-yellow-500 mr-1 fill-current" /> {driver.rating}
+                        <Star size={10} className="text-yellow-500 mr-1 fill-current" /> {driver.rating?.toFixed(1) || '5.0'}
                       </span>
+                      {driver.is_available ? (
+                        <span className="flex items-center text-[10px] font-bold bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-md text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
+                          ONLINE
+                        </span>
+                      ) : (
+                        <span className="flex items-center text-[10px] font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                          OFFLINE
+                        </span>
+                      )}
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{driver.carModel} • <span className="uppercase text-xs border border-slate-300 dark:border-slate-600 px-1 rounded bg-slate-100 dark:bg-slate-800 font-mono tracking-widest">{driver.plate}</span></p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{driver.vehicle?.model || 'Unknown Vehicle'} • <span className="uppercase text-xs border border-slate-300 dark:border-slate-600 px-1 rounded bg-slate-100 dark:bg-slate-800 font-mono tracking-widest">{driver.distance != null ? `${driver.distance.toFixed(1)} km away` : 'Nearby'}</span></p>
                   </div>
                   <div className="flex flex-col sm:items-end w-full sm:w-auto gap-2">
                     <div className="text-xs font-bold text-green-600 dark:text-green-500 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full w-fit mx-auto sm:mx-0">
-                      ETA: {driver.eta}
+                      ETA: {driver.eta_minutes ? `${driver.eta_minutes} min` : '3 min'}
                     </div>
                     <button 
-                      onClick={() => handleConfirmRide(driver.id)}
-                      className="w-full sm:w-auto px-6 py-2 bg-slate-900 dark:bg-white text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white dark:text-slate-900 font-bold rounded-control hover:bg-orange-500 dark:hover:bg-orange-500 hover:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white transition-colors"
+                      onClick={() => handleConfirmRide(driver.driver_id)}
+                      disabled={!driver.is_available}
+                      className={driver.is_available 
+                        ? "bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors w-full sm:w-auto"
+                        : "bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-medium py-2 px-4 rounded-md cursor-not-allowed w-full sm:w-auto"}
                     >
                       Request Ride
                     </button>

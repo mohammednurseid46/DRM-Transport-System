@@ -31,6 +31,7 @@ export const api = {
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: "GET",
       headers: getAuthHeaders(),
+      cache: "no-store",
     });
     return parseResponse(res);
   },

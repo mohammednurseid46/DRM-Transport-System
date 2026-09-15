@@ -98,3 +98,68 @@ export const getEarnings = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const getActiveDrivers = async (req: Request, res: Response) => {
+  try {
+    const lat = req.query.lat ? parseFloat(req.query.lat as string) : null;
+    const lng = req.query.lng ? parseFloat(req.query.lng as string) : null;
+
+    const activeDrivers = await prisma.driver.findMany({
+      where: {
+        is_verified: true
+      },
+      select: {
+        driver_id: true,
+        is_available: true,
+        current_latitude: true,
+        current_longitude: true,
+        rating: true,
+        user: {
+          select: {
+            full_name: true
+          }
+        },
+        vehicle: {
+          select: {
+            model: true
+          }
+        }
+      }
+    });
+
+    let driversWithDistance = activeDrivers.map(driver => {
+      let distance = null;
+      let eta_minutes = null;
+
+      if (lat !== null && lng !== null && driver.current_latitude !== null && driver.current_longitude !== null) {
+        const R = 6371; // Radius of the earth in km
+        const dLat = (driver.current_latitude - lat) * Math.PI / 180;
+        const dLon = (driver.current_longitude - lng) * Math.PI / 180;
+        const a = 
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(lat * Math.PI / 180) * Math.cos(driver.current_latitude * Math.PI / 180) * 
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        distance = R * c; // Distance in km
+        eta_minutes = Math.max(1, Math.round((distance / 30) * 60)); // Assuming 30km/h average speed, min 1 min
+      }
+
+      return {
+        ...driver,
+        distance,
+        eta_minutes
+      };
+    });
+
+    if (lat !== null && lng !== null) {
+      driversWithDistance.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+    }
+
+    console.log("Fetched active drivers count:", driversWithDistance.length);
+
+    res.status(200).json({ drivers: driversWithDistance });
+  } catch (error) {
+    console.error('Get active drivers error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

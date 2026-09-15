@@ -1,10 +1,13 @@
 import { Router } from 'express';
-import { toggleAvailability, updateLocation, getEarnings } from '../controllers/drivers.controller.js';
+import { toggleAvailability, updateLocation, getEarnings, getActiveDrivers } from '../controllers/drivers.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-// All driver routes require authentication
+// Public routes
+router.get('/active', getActiveDrivers);
+
+// All other driver routes require authentication
 router.use(authenticate);
 
 router.post('/availability', toggleAvailability);
