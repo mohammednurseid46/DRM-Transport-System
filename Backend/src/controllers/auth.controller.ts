@@ -17,7 +17,7 @@ export const register = async (req: Request, res: Response) => {
     if (!parseResult.success) {
       return res.status(400).json({ 
         message: 'Validation failed', 
-        errors: parseResult.error.errors.map(e => e.message)
+        errors: parseResult.error.issues.map((e: any) => e.message)
       });
     }
 
