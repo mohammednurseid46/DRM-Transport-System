@@ -15,8 +15,8 @@ export const register = async (req: Request, res: Response) => {
     // 1. Zod Validation
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ 
-        message: 'Validation failed', 
+      return res.status(400).json({
+        message: 'Validation failed',
         errors: parseResult.error.issues.map((e: any) => e.message)
       });
     }
@@ -26,7 +26,7 @@ export const register = async (req: Request, res: Response) => {
     // 2. Check if user already exists
     const trimmedEmail = validatedData.email.trim().toLowerCase();
     const orConditions: any[] = [{ email: trimmedEmail }];
-    
+
     if (validatedData.phone && validatedData.phone.trim() !== '') {
       orConditions.push({ phone_number: validatedData.phone.trim() });
     }
@@ -38,10 +38,10 @@ export const register = async (req: Request, res: Response) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ 
-        message: existingUser.email.toLowerCase() === trimmedEmail 
-          ? 'User with this email already exists' 
-          : 'User with this phone number already exists' 
+      return res.status(400).json({
+        message: existingUser.email.toLowerCase() === trimmedEmail
+          ? 'User with this email already exists'
+          : 'User with this phone number already exists'
       });
     }
 
@@ -152,7 +152,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password_hash);
-    
+
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -193,7 +193,12 @@ export const getProfile = async (req: Request, res: Response) => {
         profile_photo: true,
         is_active: true,
         created_at: true,
-        driver: true // Include driver details if applicable
+        driver: {
+          include: {
+            vehicle: true,
+            payout_methods: true
+          }
+        } // Include driver details if applicable
       }
     });
 

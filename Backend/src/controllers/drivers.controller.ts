@@ -163,3 +163,37 @@ export const getActiveDrivers = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const addPayoutMethod = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user.user_id;
+    const { provider, account_number, is_primary } = req.body;
+
+    if (!provider || !account_number) {
+      return res.status(400).json({ message: 'Provider and account number are required' });
+    }
+
+    const driver = await prisma.driver.findUnique({
+      where: { user_id: userId }
+    });
+
+    if (!driver) {
+      return res.status(404).json({ message: 'Driver profile not found' });
+    }
+
+    // If is_primary is true, we might want to set others to false, but for now we just insert
+    const newPayoutMethod = await prisma.driverPayoutMethod.create({
+      data: {
+        driver_id: driver.driver_id,
+        provider,
+        account_number,
+        is_primary: is_primary || false
+      }
+    });
+
+    res.status(201).json({ message: 'Payout method added successfully', payout_method: newPayoutMethod });
+  } catch (error) {
+    console.error('Add payout method error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
