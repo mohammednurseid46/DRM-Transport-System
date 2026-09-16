@@ -23,6 +23,10 @@ export default function DriverProfilePage() {
 
   const [toast, setToast] = useState<string | null>(null);
 
+  const [payoutMethods, setPayoutMethods] = useState<any[]>([]);
+  const [isAddPayoutModalOpen, setIsAddPayoutModalOpen] = useState(false);
+  const [payoutForm, setPayoutForm] = useState({ provider: 'CBE', account_number: '' });
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -47,6 +51,8 @@ export default function DriverProfilePage() {
           vehicleModel: mergedUser.vehicleModel || "",
           plateNumber: mergedUser.plateNumber || ""
         });
+        
+        setPayoutMethods(data.driver?.payout_methods || []);
       } catch (err) {
         console.error("Failed to load profile", err);
         const currentUser = await getCurrentUser();
@@ -88,6 +94,20 @@ export default function DriverProfilePage() {
     await updateDatabaseUser(updatedUser);
     setIsEditing(false);
     showToast("Profile updated successfully!");
+  };
+
+  const handleAddPayoutMethod = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await api.post('/drivers/payout-methods', payoutForm);
+      setPayoutMethods([...payoutMethods, res.payout_method]);
+      setIsAddPayoutModalOpen(false);
+      setPayoutForm({ provider: 'CBE', account_number: '' });
+      showToast("Payout method added successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add payout method");
+    }
   };
 
   if (!user) return <div className="flex h-full items-center justify-center p-8 text-slate-500 font-medium bg-slate-50 dark:bg-slate-950 transition-colors duration-200">Loading profile...</div>;
@@ -243,27 +263,28 @@ export default function DriverProfilePage() {
               </div>
               
               <div className="space-y-4">
-                <div className="p-3 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between transition-colors">
-                  <div>
-                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Primary Method</p>
-                    <p className="text-sm text-slate-900 dark:text-white font-medium">CBE Account</p>
+                {payoutMethods.length === 0 ? (
+                  <div className="p-4 text-center border border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-slate-500 text-sm">
+                    No payout methods added yet.
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                    1000****4567
-                  </div>
-                </div>
+                ) : (
+                  payoutMethods.map((method: any, idx: number) => (
+                    <div key={method.id || idx} className="p-3 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between transition-colors">
+                      <div>
+                        <p className="text-xs text-slate-500 font-bold uppercase mb-1">{method.is_primary ? "Primary Method" : "Alternative"}</p>
+                        <p className="text-sm text-slate-900 dark:text-white font-medium">{method.provider}</p>
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                        {method.account_number}
+                      </div>
+                    </div>
+                  ))
+                )}
                 
-                <div className="p-3 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between transition-colors">
-                  <div>
-                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Alternative</p>
-                    <p className="text-sm text-slate-900 dark:text-white font-medium">Telebirr</p>
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                    0911****44
-                  </div>
-                </div>
-                
-                <button className="w-full py-2 text-sm text-orange-600 dark:text-orange-500 hover:text-orange-700 dark:hover:text-orange-400 font-medium transition-colors border border-dashed border-slate-300 dark:border-slate-700 hover:border-orange-500/50 rounded-lg mt-2">
+                <button 
+                  onClick={() => setIsAddPayoutModalOpen(true)}
+                  className="w-full py-2 text-sm text-orange-600 dark:text-orange-500 hover:text-orange-700 dark:hover:text-orange-400 font-medium transition-colors border border-dashed border-slate-300 dark:border-slate-700 hover:border-orange-500/50 rounded-lg mt-2"
+                >
                   + Add Payout Method
                 </button>
               </div>
@@ -293,6 +314,62 @@ export default function DriverProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Add Payout Method Modal */}
+      {isAddPayoutModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Add Payout Method</h3>
+              <button onClick={() => setIsAddPayoutModalOpen(false)} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleAddPayoutMethod} className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Provider</label>
+                <select 
+                  value={payoutForm.provider}
+                  onChange={(e) => setPayoutForm({...payoutForm, provider: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-orange-500"
+                >
+                  <option value="CBE">CBE Account</option>
+                  <option value="Telebirr">Telebirr</option>
+                  <option value="Awash Bank">Awash Bank</option>
+                  <option value="Dashen Bank">Dashen Bank</option>
+                  <option value="Abyssinia Bank">Abyssinia Bank</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Account / Phone Number</label>
+                <input 
+                  type="text" 
+                  value={payoutForm.account_number}
+                  onChange={(e) => setPayoutForm({...payoutForm, account_number: e.target.value})}
+                  placeholder="e.g. 1000123456789 or 0911234567"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-orange-500"
+                  required
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setIsAddPayoutModalOpen(false)}
+                  className="flex-1 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 py-2 text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+                >
+                  Save Method
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
