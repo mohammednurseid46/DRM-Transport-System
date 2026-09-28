@@ -93,7 +93,7 @@ export default function PassengerBookRidePage() {
     
     try {
       const pCoords = getCoords(pickup);
-      const res = await api.get(`/drivers/active?lat=${pCoords[0]}&lng=${pCoords[1]}`);
+      const res = await api.get(`/drivers/all?lat=${pCoords[0]}&lng=${pCoords[1]}`);
       if (res && res.drivers) {
         setAvailableDrivers(res.drivers);
       } else {
@@ -543,12 +543,12 @@ export default function PassengerBookRidePage() {
                         <Star size={10} className="text-yellow-500 mr-1 fill-current" /> {driver.rating?.toFixed(1) || '5.0'}
                       </span>
                       {driver.is_available ? (
-                        <span className="flex items-center text-[10px] font-bold bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-md text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
-                          ONLINE
+                        <span className="flex items-center gap-1 text-[10px] font-bold bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-md text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
+                          <Circle size={8} className="text-green-500" fill="currentColor" /> ONLINE
                         </span>
                       ) : (
-                        <span className="flex items-center text-[10px] font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                          OFFLINE
+                        <span className="flex items-center gap-1 text-[10px] font-bold bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-md text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+                          <Circle size={8} className="text-red-500" fill="currentColor" /> OFFLINE
                         </span>
                       )}
                     </div>

@@ -99,15 +99,12 @@ export const getEarnings = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getActiveDrivers = async (req: Request, res: Response) => {
+export const getAllDrivers = async (req: Request, res: Response) => {
   try {
     const lat = req.query.lat ? parseFloat(req.query.lat as string) : null;
     const lng = req.query.lng ? parseFloat(req.query.lng as string) : null;
 
-    const activeDrivers = await prisma.driver.findMany({
-      where: {
-        is_verified: true
-      },
+    const allDrivers = await prisma.driver.findMany({
       select: {
         driver_id: true,
         is_available: true,
@@ -116,18 +113,20 @@ export const getActiveDrivers = async (req: Request, res: Response) => {
         rating: true,
         user: {
           select: {
-            full_name: true
+            full_name: true,
+            is_active: true
           }
         },
         vehicle: {
           select: {
-            model: true
+            model: true,
+            is_active: true
           }
         }
       }
     });
 
-    let driversWithDistance = activeDrivers.map(driver => {
+    let driversWithDistance = allDrivers.map(driver => {
       let distance = null;
       let eta_minutes = null;
 
@@ -155,11 +154,11 @@ export const getActiveDrivers = async (req: Request, res: Response) => {
       driversWithDistance.sort((a, b) => (a.distance || 0) - (b.distance || 0));
     }
 
-    console.log("Fetched active drivers count:", driversWithDistance.length);
+    console.log("Fetched all drivers count:", driversWithDistance.length);
 
     res.status(200).json({ drivers: driversWithDistance });
   } catch (error) {
-    console.error('Get active drivers error:', error);
+    console.error('Get all drivers error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
