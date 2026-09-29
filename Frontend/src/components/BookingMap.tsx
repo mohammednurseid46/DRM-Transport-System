@@ -67,7 +67,7 @@ export default function BookingMap({ onLocationSelect, onDriverSelect, defaultLo
           setDrivers(res.drivers);
         }
       } catch (error) {
-        console.error("Failed to fetch active drivers. This may be expected for guests or if offline.");
+        // Silently fail if active drivers cannot be fetched
       }
     };
     fetchDrivers();

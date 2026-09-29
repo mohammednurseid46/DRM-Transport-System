@@ -158,21 +158,21 @@ export default function AdminLayout({
       <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
         
         {/* Desktop Sidebar Navigation */}
-        <aside className="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-700 hidden md:flex flex-col bg-slate-50 dark:bg-slate-900 z-10">
+        <aside className="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-700 hidden lg:flex flex-col bg-slate-50 dark:bg-slate-900 z-10">
           <SidebarContent />
         </aside>
 
         {/* Mobile Sidebar Overlay */}
         {isMobileSidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
             onClick={() => setIsMobileSidebarOpen(false)}
           />
         )}
 
         {/* Mobile Drawer */}
         <aside 
-          className={`fixed top-0 left-0 bottom-0 w-64 bg-white dark:bg-slate-800 shadow-sm z-50 flex flex-col transition-transform duration-300 ease-in-out md:hidden border-r border-slate-200 dark:border-slate-700 shadow-2xl ${
+          className={`fixed top-0 left-0 bottom-0 w-64 bg-white dark:bg-slate-800 shadow-sm z-50 flex flex-col transition-transform duration-300 ease-in-out lg:hidden border-r border-slate-200 dark:border-slate-700 shadow-2xl ${
             isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -182,7 +182,7 @@ export default function AdminLayout({
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           {/* Mobile Header */}
-          <header className="md:hidden h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm shrink-0 sticky top-0 z-20 shadow-md">
+          <header className="lg:hidden h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm shrink-0 sticky top-0 z-20 shadow-md">
             <Link href="/admin" className="text-lg font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white flex items-center gap-2">
                <div className="bg-orange-500 dark:bg-orange-600 p-1 rounded flex items-center justify-center">
                   <LayoutDashboard size={14} className="text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white" />

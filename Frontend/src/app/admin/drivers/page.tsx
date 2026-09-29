@@ -197,7 +197,7 @@ export default function DriverManagementPage() {
   const currentList = activeTab === "pending" ? pendingDrivers : verifiedDrivers;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 relative h-full flex flex-col bg-slate-50 dark:bg-slate-900 overflow-y-auto">
+    <div className="p-4 md:p-6 lg:p-8 w-full max-w-7xl mx-auto flex flex-col space-y-6 bg-slate-50 dark:bg-slate-900">
       {/* Toast Notification */}
       {notification && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-slate-900 dark:text-slate-900 dark:text-white animate-in slide-in-from-top-4 ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
@@ -226,38 +226,38 @@ export default function DriverManagementPage() {
       </div>
 
       {/* Top Fleet Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center">
-            <Users size={24} />
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-1">
+            <Users size={20} className="md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Drivers</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">{drivers.length}</p>
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">Total Drivers</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{drivers.length}</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex items-center gap-4">
-          <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-full flex items-center justify-center">
-            <ShieldAlert size={24} />
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-full flex items-center justify-center mb-1">
+            <ShieldAlert size={20} className="md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Pending Approvals</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">{pendingDrivers.length}</p>
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">Pending</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{pendingDrivers.length}</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex items-center gap-4">
-          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center">
-            <Car size={24} />
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow col-span-2 lg:col-span-1">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-1">
+            <Car size={20} className="md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Active / Online Fleet</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">{activeOnlineCount}</p>
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">Active / Online Fleet</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{activeOnlineCount}</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-700">
+      <div className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto whitespace-nowrap hide-scrollbar">
         <button 
           onClick={() => setActiveTab("pending")}
           className={`px-6 py-3 text-sm font-bold tracking-wider uppercase transition-colors border-b-2 ${activeTab === 'pending' ? 'text-orange-600 dark:text-orange-500 border-orange-500 bg-orange-500/5' : 'text-slate-500 border-transparent hover:text-slate-700 dark:hover:text-slate-300'}`}
@@ -273,7 +273,7 @@ export default function DriverManagementPage() {
       </div>
 
       {/* Driver List */}
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-4 overflow-x-auto">
         {drivers.length === 0 ? (
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-12 flex flex-col items-center justify-center text-center">
              <Car className="w-12 h-12 text-slate-400 mb-2" />
@@ -288,9 +288,9 @@ export default function DriverManagementPage() {
              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white mb-2">No {activeTab} drivers found</h3>
           </div>
         ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 min-w-[300px]">
             {currentList.map(driver => (
-              <div key={driver.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 flex flex-col gap-4 relative overflow-hidden group">
+              <div key={driver.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden group shadow-sm hover:shadow-md transition-shadow">
                 
                 {/* Status Badge */}
                 <div className="absolute top-4 right-4">

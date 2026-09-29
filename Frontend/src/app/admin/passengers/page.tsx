@@ -106,12 +106,12 @@ export default function AdminPassengersPage() {
   const totalRevenue = passengers.reduce((sum, p) => sum + (p.totalSpent || 0), 0);
 
   return (
-    <div className="p-4 md:p-8 w-full max-w-7xl mx-auto flex flex-col h-full overflow-y-auto">
+    <div className="p-4 md:p-6 lg:p-8 w-full max-w-7xl mx-auto flex flex-col space-y-6">
       
       {/* Header & Masking Toggle */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white mb-2">Passenger Management</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Passenger Management</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">View and manage registered passengers, ride history, and account status.</p>
         </div>
 
@@ -138,7 +138,7 @@ export default function AdminPassengersPage() {
           <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6">
             <div className="flex items-center gap-4 mb-4 text-red-500">
               <ShieldCheck size={32} />
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">Data Privacy Audit Notice</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Data Privacy Audit Notice</h2>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
               You are about to unmask Personally Identifiable Information (PII) including full phone numbers and email addresses. 
@@ -148,13 +148,13 @@ export default function AdminPassengersPage() {
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => setShowUnmaskWarning(false)}
-                className="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white font-bold rounded-lg transition-colors"
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-bold rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button 
                 onClick={confirmUnmask}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white font-bold rounded-lg transition-colors shadow-lg shadow-red-500/20"
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors shadow-lg shadow-red-500/20"
               >
                 Yes, Reveal Data
               </button>
@@ -164,54 +164,54 @@ export default function AdminPassengersPage() {
       )}
 
       {/* Top Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center">
-            <Users size={24} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-1">
+            <Users size={20} className="md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Passengers</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">{passengers.length}</p>
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">Total Passengers</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{passengers.length}</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex items-center gap-4">
-          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center">
-            <CheckCircle size={24} />
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-1">
+            <CheckCircle size={20} className="md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Active Accounts</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">{activePassengers}</p>
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">Active Accounts</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{activePassengers}</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex items-center gap-4">
-          <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center">
-            <Car size={24} />
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mb-1">
+            <Car size={20} className="md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Completed Trips</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">{totalTrips}</p>
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">Completed Trips</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{totalTrips}</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex items-center gap-4">
-          <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center font-bold text-lg">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center font-bold text-base md:text-lg mb-1">
             Br
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Lifetime Revenue</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">Br {totalRevenue.toLocaleString()}</p>
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">Lifetime Revenue</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white truncate">Br {totalRevenue.toLocaleString()}</p>
           </div>
         </div>
       </div>
 
       {/* Table Section or Empty State */}
       {passengers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex-1">
+        <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm flex-1 min-h-[300px]">
           <Users className="w-12 h-12 text-slate-400 mb-2" />
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white mb-1">No Registered Passengers Yet</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">No Registered Passengers Yet</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">Passengers who sign up through the passenger registration portal will appear here.</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden flex flex-col flex-1">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-md overflow-hidden flex flex-col flex-1">
           
           {/* Table Toolbar */}
           <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
@@ -222,7 +222,7 @@ export default function AdminPassengersPage() {
                 placeholder="Search by name or email..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm text-slate-900 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all"
               />
             </div>
           </div>
@@ -250,7 +250,7 @@ export default function AdminPassengersPage() {
                           {passenger.name ? passenger.name.charAt(0).toUpperCase() : "U"}
                         </div>
                         <div>
-                          <div className="font-bold text-sm text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white">{passenger.name || "Unknown User"}</div>
+                          <div className="font-bold text-sm text-slate-900 dark:text-white">{passenger.name || "Unknown User"}</div>
                           <div className="text-xs text-slate-500 dark:text-slate-400">
                             Joined {new Date(passenger.registeredAt).toLocaleDateString()}
                           </div>
@@ -266,7 +266,7 @@ export default function AdminPassengersPage() {
 
                     {/* Ride Stats */}
                     <td className="p-4">
-                      <div className="text-sm text-slate-900 dark:text-slate-900 dark:text-slate-900 dark:text-white font-medium">{passenger.totalRides} trips</div>
+                      <div className="text-sm text-slate-900 dark:text-white font-medium">{passenger.totalRides} trips</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mb-1">
                         <Star size={10} className="text-yellow-500 fill-current" /> {passenger.avgRating} Avg Rating
                       </div>
